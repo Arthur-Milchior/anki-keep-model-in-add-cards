@@ -6,85 +6,80 @@
 from aqt.qt import QPushButton
 from aqt.utils import tooltip
 from anki.sound import clearAudioQueue
-from aqt.addcards import AddCards
+import aqt
+import aqt.addcards
 from anki.hooks import remHook, addHook
-from aqt.modelchooser import ModelChooser
+import aqt.modelchooser
 from aqt.deckchooser import DeckChooser
 from anki.notes import Note
-oldInit = AddCards.__init__
 
 def debug(t):
-    print(t)
+    #print(t)
     pass
 
-
-def newInit(self,mw):
-    debug("Call newInit")
-    oldInit(self,mw)
-    remHook("currentModelChanged",self.onModelChange)
-    remHook('reset', self.onReset)
-    addHook("reset",self.onResetSameModel)
-    
-AddCards.__init__=newInit
-def setupChoosers(self):
-  class NewModelChooser(ModelChooser):
-    def __init__(self, mw, widget, label=True):
-        super().__init__( mw, widget, label=label)
+class AddCards(aqt.addcards.AddCards):
+    def __init__(self,mw):
+        debug("Call newInit")
+        super().__init__(mw)
+        remHook("currentModelChanged",self.onModelChange)
         remHook('reset', self.onReset)
-        
-    def onModelChange(selfModel):
-        """Open Choose Note Type window"""
-        #Method called when we want to change the current model
-        debug("Call newOnModelChange")
-        from aqt.studydeck import StudyDeck
-        current = selfModel.deck.models.current()['name']
-        # edit button
-        edit = QPushButton(_("Manage"), clicked=selfModel.onEdit)
-        def nameFunc():
-            return sorted(selfModel.deck.models.allNames())
-        ret = StudyDeck(
-            selfModel.mw, names=nameFunc,
-            accept=_("Choose"), title=_("Choose Note Type"),
-            help="_notes", current=current, parent=selfModel.widget,
-            buttons=[edit], cancel=True, geomKey="selectModel")
-        if not ret.name:
-            return
-        m = selfModel.deck.models.byName(ret.name)
-        selfModel.deck.conf['curModel'] = m['id']
-        cdeck = selfModel.deck.decks.current()
-        cdeck['mid'] = m['id']
-        selfModel.deck.decks.save(cdeck)
-        #runHook("currentModelChanged")
-        #selfModel.mw.reset()
-        ### New line: 
-        debug("Call AddCard.onModelChange")
-        self.onModelChange() #this is onModelChange from card, and note from ModelChange
-        selfModel.models.setText(ret.name)
-  self.modelChooser = NewModelChooser(
-        self.mw, self.form.modelArea)
-  self.deckChooser = DeckChooser(
-        self.mw, self.form.deckArea)
-AddCards.setupChoosers = setupChoosers
-# def setupChoosers(self):
-#     pass
-# AddCards.setupChoosers= setupChoosers
-# import anki.hooks
-# def remHook(hook, func):
-#     "Remove a function if is on hook."
-#     hook = anki.hooks._hooks.get(hook, [])
-#     if func in hook:
-#         hook.remove(func)
-#         return True
-#     else:
-#         return False
+        addHook("reset",self.onResetSameModel)
+      
+    def setupChoosers(self):
+        debug("Call setupChoosers")
+        class ModelChooser(aqt.modelchooser.ModelChooser):
+            # def __init__(self, mw, widget, label=True):
+            #     super().__init__( mw, widget, label=label)
+            #     remHook('reset', self.onReset)
+            def updateModels(selfModel):
+                if hasattr(self,"editor"):#self's init has ended
+                    modelName=self.editor.note._model["name"]
+                else:# initialisation of the window
+                    modelName=selfModel.deck.models.current()['name']
+                selfModel.models.setText(modelName)
+                
+            def onModelChange(selfModel):
+                """Open Choose Note Type window"""
+                #Method called when we want to change the current model
+                debug("Call newOnModelChange")
+                from aqt.studydeck import StudyDeck
+                current = selfModel.deck.models.current()['name']
+                # edit button
+                edit = QPushButton(_("Manage"), clicked=selfModel.onEdit)
+                def nameFunc():
+                    return sorted(selfModel.deck.models.allNames())
+                ret = StudyDeck(
+                    selfModel.mw, names=nameFunc,
+                    accept=_("Choose"), title=_("Choose Note Type"),
+                    help="_notes", current=current, parent=selfModel.widget,
+                    buttons=[edit], cancel=True, geomKey="selectModel")
+                if not ret.name:
+                    return
+                m = selfModel.deck.models.byName(ret.name)
+                selfModel.deck.conf['curModel'] = m['id']
+                cdeck = selfModel.deck.decks.current()
+                cdeck['mid'] = m['id']
+                selfModel.deck.decks.save(cdeck)
+                #runHook("currentModelChanged")
+                #selfModel.mw.reset()
+                ### New line: 
+                debug("Call AddCard.onModelChange")
+                self.onModelChange() #this is onModelChange from card, and note from ModelChange
+                selfModel.updateModels()
+        self.modelChooser = ModelChooser(
+            self.mw, self.form.modelArea)
+        self.deckChooser = DeckChooser(
+            self.mw, self.form.deckArea)
 
-def onReset(self, model=None, keep=False):
+
+    def onReset(self, model=None, keep=False):
         """Create a new note and set it.
 
         keyword arguments
         model -- A model object. Used for the new note.
         keep -- whether to keep sticky values from old note
         """
+        debug("Call onReset")
         #Also called from __init__
         oldNote = self.editor.note
         if model is None:
@@ -105,15 +100,16 @@ def onReset(self, model=None, keep=False):
                 except IndexError:
                     break
         self.setAndFocusNote(note)
+    
+    def onResetSameModel(self,keep=False):#this is a new method
+        debug("Call onResetSameModel")
+        return self.onReset(model=self.editor.note._model,keep=keep)
 
-AddCards.onReset=onReset
-def onResetSameModel(self,keep=False):
-    return onReset(self,model=self.editor.note._model,keep=keep)
-AddCards.onResetSameModel= onResetSameModel #this is a new method
-def _addCards(self):
+    def _addCards(self):
         """Adding the content of the fields as a new note.
 
         Assume that the content of the GUI saved in the model."""
+        debug("Call _addCards")
         self.editor.saveAddModeVars()
         note = self.editor.note
         note = self.addNote(note)
@@ -124,10 +120,12 @@ def _addCards(self):
         clearAudioQueue()
         self.onResetSameModel(keep=True)#Only difference is calling onResetSameModel instead of onReset
         self.mw.col.autosave()
-AddCards._addCards= _addCards
 
-old_reject = AddCards._reject
-def _reject(self):
-    remHook('reset', self.onResetSameModel)
-    self.old_reject()
-AddCards._reject=old_reject
+    def _reject(self):
+        debug("Call _reject")
+        remHook('reset', self.onResetSameModel)
+        super()._reject()
+aqt.addcards.AddCards= AddCards
+#The window opener contains information about the class, and not its adress. Thus it must be updated.
+aqt.dialogs._dialogs["AddCards"]=[AddCards,None]
+

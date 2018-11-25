@@ -17,16 +17,23 @@ This add-on ensure that the note type of a «add» window only change
 when you choose a note type from the same window.
 
 ## Internal
-* In module ```aqt.addcards```, ```AddCards.__init__``` is
-  redefined. The new method call the former method and then change
-  some hooks.
-* On object ```o``` of type ```aqt.ModelChange```, the method
-  ```onModelChange``` is changed when the object is called from the
-  window ```addCard```. The only difference is that this instance call
-  the method onModelChange in the addCard window.
-## Advice
-
-## Version 2.0
+* In module ```aqt.addcards```, ```AddCards``` is replaced by a
+  class. The new class inherits from the older one. It redefines
+  ```__init__``` and ```_reject```, by calling the previous method,
+  and changing its hooks. It redefines 
+  ```setupChoosers```, ```onReset```, ```_addCards```, by copy-pasting
+  the previous code and doing some modification. Thus, it may be
+  incompatible with other add-ons also editing those notes. Finally it
+  creates a method ```onResetSameModel```.
+* Hooks currentModelChanged does not change anything in the "add"
+  window. "reset" still call the method "onReset", but a version which
+  does not change the model.
+* The ```ModelChooser``` of the "add" window is a new class,
+  inheriting from ```aqt.modelchooser.ModelChooser```. It redefines
+  ```__init__```, calling the previous method and removing some
+  hook. It redefine ```onModelChange``` by copy-paste the old code,
+  removing everything affecting the environment, and affecting
+  directly the current "add" window.
 
 ## Links, licence and credits
 
@@ -35,5 +42,5 @@ Key         |Value
 Copyright   | Arthur Milchior <arthur@milchior.fr>
 Based on    | Anki code by Damien Elmes <anki@ichi2.net>
 License     | GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
-Source in   | https://github.com/Arthur-Milchior/anki-
+Source in   | https://github.com/Arthur-Milchior/anki-keep-model-in-add-cards
 Addon number| [NNNNNNNNNNNN](https://ankiweb.net/shared/info/NNNNNNNNNNNN)
