@@ -32,8 +32,7 @@ when you choose a note type from the same window.
   inheriting from ```aqt.modelchooser.ModelChooser```. It redefines
   ```__init__```, calling the previous method and removing some
   hook. It redefine ```onModelChange``` by copy-paste the old code,
-  removing everything affecting the environment, and affecting
-  directly the current "add" window.
+  removing everything affecting the environment, and affecting  directly the current "add" window.
 
 ## Links, licence and credits
 
@@ -43,4 +42,4 @@ Copyright   | Arthur Milchior <arthur@milchior.fr>
 Based on    | Anki code by Damien Elmes <anki@ichi2.net>
 License     | GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 Source in   | https://github.com/Arthur-Milchior/anki-keep-model-in-add-cards
-Addon number| [NNNNNNNNNNNN](https://ankiweb.net/shared/info/NNNNNNNNNNNN)
+Addon number| [424778276](https://ankiweb.net/shared/info/424778276)
