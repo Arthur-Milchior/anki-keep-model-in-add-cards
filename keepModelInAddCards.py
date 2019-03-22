@@ -7,6 +7,7 @@ from aqt.qt import QPushButton
 from aqt.utils import tooltip
 from anki.sound import clearAudioQueue
 import aqt
+from anki.lang import _
 import aqt.addcards
 from anki.hooks import remHook, addHook
 import aqt.modelchooser
@@ -24,7 +25,7 @@ class AddCards(aqt.addcards.AddCards):
         remHook("currentModelChanged",self.onModelChange)
         remHook('reset', self.onReset)
         addHook("reset",self.onResetSameModel)
-      
+
     def setupChoosers(self):
         debug("Call setupChoosers")
         class ModelChooser(aqt.modelchooser.ModelChooser):
@@ -37,7 +38,7 @@ class AddCards(aqt.addcards.AddCards):
                 else:# initialisation of the window
                     modelName=selfModel.deck.models.current()['name']
                 selfModel.models.setText(modelName)
-                
+
             def onModelChange(selfModel):
                 """Open Choose Note Type window"""
                 #Method called when we want to change the current model
@@ -62,7 +63,7 @@ class AddCards(aqt.addcards.AddCards):
                 selfModel.deck.decks.save(cdeck)
                 #runHook("currentModelChanged")
                 #selfModel.mw.reset()
-                ### New line: 
+                ### New line:
                 debug("Call AddCard.onModelChange")
                 self.onModelChange() #this is onModelChange from card, and note from ModelChange
                 selfModel.updateModels()
@@ -100,7 +101,7 @@ class AddCards(aqt.addcards.AddCards):
                 except IndexError:
                     break
         self.setAndFocusNote(note)
-    
+
     def onResetSameModel(self,keep=False):#this is a new method
         debug("Call onResetSameModel")
         return self.onReset(model=self.editor.note._model,keep=keep)
@@ -128,4 +129,3 @@ class AddCards(aqt.addcards.AddCards):
 aqt.addcards.AddCards= AddCards
 #The window opener contains information about the class, and not its adress. Thus it must be updated.
 aqt.dialogs._dialogs["AddCards"]=[AddCards,None]
-
