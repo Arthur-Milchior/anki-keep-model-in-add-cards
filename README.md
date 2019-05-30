@@ -17,22 +17,23 @@ This add-on ensure that the note type of a «add» window only change
 when you choose a note type from the same window.
 
 ## Internal
-* In module ```aqt.addcards```, ```AddCards``` is replaced by a
+* In module `aqt.addcards`, `AddCards` is replaced by a
   class. The new class inherits from the older one. It redefines
-  ```__init__``` and ```_reject```, by calling the previous method,
-  and changing its hooks. It redefines 
-  ```setupChoosers```, ```onReset```, ```_addCards```, by copy-pasting
+  `__init__` and `_reject`, by calling the previous method,
+  and changing its hooks. It redefines
+  `setupChoosers`, `onReset`, `_addCards`, by copy-pasting
   the previous code and doing some modification. Thus, it may be
   incompatible with other add-ons also editing those notes. Finally it
-  creates a method ```onResetSameModel```.
+  creates a method `onResetSameModel`.
 * Hooks currentModelChanged does not change anything in the "add"
   window. "reset" still call the method "onReset", but a version which
   does not change the model.
-* The ```ModelChooser``` of the "add" window is a new class,
-  inheriting from ```aqt.modelchooser.ModelChooser```. It redefines
-  ```__init__```, calling the previous method and removing some
-  hook. It redefine ```onModelChange``` by copy-paste the old code,
-  removing everything affecting the environment, and affecting  directly the current "add" window.
+* The `ModelChooser` of the "add" window is a new class, inheriting
+  from `aqt.modelchooser.ModelChooser`. It redefines `__init__`,
+  calling the previous method and removing some hook. It redefine
+  `onModelChange` by copy-paste the old code, removing everything
+  affecting the environment, and affecting directly the current "add"
+  window.
 
 ## Links, licence and credits
 
