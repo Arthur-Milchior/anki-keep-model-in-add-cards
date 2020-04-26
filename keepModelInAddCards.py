@@ -3,50 +3,54 @@
 # Original code from Anki, copyright Damien Elmes <anki@ichi2.net>
 # License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 # Add-on number 424778276 https://ankiweb.net/shared/info/424778276
+import aqt
+import aqt.addcards
+import aqt.modelchooser
+from anki.hooks import addHook, remHook
+from anki.lang import _
+from anki.notes import Note
+from anki.sound import clearAudioQueue
+from aqt.deckchooser import DeckChooser
 from aqt.qt import QPushButton
 from aqt.utils import tooltip
-from anki.sound import clearAudioQueue
-import aqt
-from anki.lang import _
-import aqt.addcards
-from anki.hooks import remHook, addHook
-import aqt.modelchooser
-from aqt.deckchooser import DeckChooser
-from anki.notes import Note
+
 
 def debug(t):
-    #print(t)
+    # print(t)
     pass
 
+
 class AddCards(aqt.addcards.AddCards):
-    def __init__(self,mw):
+    def __init__(self, mw):
         debug("Call newInit")
         super().__init__(mw)
-        remHook("currentModelChanged",self.onModelChange)
+        remHook("currentModelChanged", self.onModelChange)
         remHook('reset', self.onReset)
-        addHook("reset",self.onResetSameModel)
+        addHook("reset", self.onResetSameModel)
 
     def setupChoosers(self):
         debug("Call setupChoosers")
+
         class ModelChooser(aqt.modelchooser.ModelChooser):
             # def __init__(self, mw, widget, label=True):
             #     super().__init__( mw, widget, label=label)
             #     remHook('reset', self.onReset)
             def updateModels(selfModel):
-                if hasattr(self,"editor"):#self's init has ended
-                    modelName=self.editor.note._model["name"]
-                else:# initialisation of the window
-                    modelName=selfModel.deck.models.current()['name']
+                if hasattr(self, "editor"):  # self's init has ended
+                    modelName = self.editor.note._model["name"]
+                else:  # initialisation of the window
+                    modelName = selfModel.deck.models.current()['name']
                 selfModel.models.setText(modelName)
 
             def onModelChange(selfModel):
                 """Open Choose Note Type window"""
-                #Method called when we want to change the current model
+                # Method called when we want to change the current model
                 debug("Call newOnModelChange")
                 from aqt.studydeck import StudyDeck
                 current = selfModel.deck.models.current()['name']
                 # edit button
                 edit = QPushButton(_("Manage"), clicked=selfModel.onEdit)
+
                 def nameFunc():
                     return sorted(selfModel.deck.models.allNames())
                 ret = StudyDeck(
@@ -61,17 +65,16 @@ class AddCards(aqt.addcards.AddCards):
                 cdeck = selfModel.deck.decks.current()
                 cdeck['mid'] = m['id']
                 selfModel.deck.decks.save(cdeck)
-                #runHook("currentModelChanged")
-                #selfModel.mw.reset()
-                ### New line:
+                # runHook("currentModelChanged")
+                # selfModel.mw.reset()
+                # New line:
                 debug("Call AddCard.onModelChange")
-                self.onModelChange() #this is onModelChange from card, and note from ModelChange
+                self.onModelChange()  # this is onModelChange from card, and note from ModelChange
                 selfModel.updateModels()
         self.modelChooser = ModelChooser(
             self.mw, self.form.modelArea)
         self.deckChooser = DeckChooser(
             self.mw, self.form.deckArea)
-
 
     def onReset(self, model=None, keep=False):
         """Create a new note and set it.
@@ -81,11 +84,11 @@ class AddCards(aqt.addcards.AddCards):
         keep -- whether to keep sticky values from old note
         """
         debug("Call onReset")
-        #Also called from __init__
+        # Also called from __init__
         oldNote = self.editor.note
         if model is None:
             note = self.mw.col.newNote()
-        else:#Difference is here. If model given as argument, it is used
+        else:  # Difference is here. If model given as argument, it is used
             note = Note(self.mw.col, model=model)
         flds = note.model()['flds']
         # copy fields from old note
@@ -102,9 +105,9 @@ class AddCards(aqt.addcards.AddCards):
                     break
         self.setAndFocusNote(note)
 
-    def onResetSameModel(self,keep=False):#this is a new method
+    def onResetSameModel(self, keep=False):  # this is a new method
         debug("Call onResetSameModel")
-        return self.onReset(model=self.editor.note._model,keep=keep)
+        return self.onReset(model=self.editor.note._model, keep=keep)
 
     def _addCards(self):
         """Adding the content of the fields as a new note.
@@ -119,13 +122,16 @@ class AddCards(aqt.addcards.AddCards):
         tooltip(_("Added"), period=500)
         # stop anything playing
         clearAudioQueue()
-        self.onResetSameModel(keep=True)#Only difference is calling onResetSameModel instead of onReset
+        # Only difference is calling onResetSameModel instead of onReset
+        self.onResetSameModel(keep=True)
         self.mw.col.autosave()
 
     def _reject(self):
         debug("Call _reject")
         remHook('reset', self.onResetSameModel)
         super()._reject()
-aqt.addcards.AddCards= AddCards
-#The window opener contains information about the class, and not its adress. Thus it must be updated.
-aqt.dialogs._dialogs["AddCards"]=[AddCards,None]
+
+
+aqt.addcards.AddCards = AddCards
+# The window opener contains information about the class, and not its adress. Thus it must be updated.
+aqt.dialogs._dialogs["AddCards"] = [AddCards, None]
