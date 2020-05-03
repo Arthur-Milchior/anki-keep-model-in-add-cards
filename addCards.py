@@ -54,7 +54,9 @@ def onReset(self, model=None, keep=False):
                     note.fields[n] = ""
             except IndexError:
                 break
-    self.setAndFocusNote(note)
+    if self.editor.web:
+        # don't set and focus the window is cleaned up
+        self.setAndFocusNote(note)
 
 AddCards.onReset = onReset
 
