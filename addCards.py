@@ -61,7 +61,7 @@ def onReset(self, model=None, keep=False):
 AddCards.onReset = onReset
 
 def onResetSameModel(self, keep=False):  # this is a new method
-    return self.onReset(model=self.editor.note.model(), keep=keep)
+    return self.onReset(model=self.editor.note.model() if self.editor.note else None, keep=keep)
 AddCards.onResetSameModel = onResetSameModel
 
 def _addCards(self):
