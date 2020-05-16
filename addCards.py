@@ -12,7 +12,7 @@ from aqt.sound import av_player
 
 
 def init_add_card(addCards):
-    gui_hooks.current_note_type_did_change.append(addCards.onModelChange)
+    gui_hooks.current_note_type_did_change.remove(addCards.onModelChange)
     gui_hooks.state_did_reset.remove(addCards.onReset)
     gui_hooks.state_did_reset.append(addCards.onResetSameModel)
 
