@@ -43,5 +43,5 @@ class ModelChooser(ModelChooser):
         gui_hooks.current_note_type_did_change(current)
         self.parent.onModelChange()
         self.updateModels()
-        self.parent.setAndFocusNote(self.parent.note)
+        self.parent.setAndFocusNote(self.parent.editor.note)
         # self.mw.reset()

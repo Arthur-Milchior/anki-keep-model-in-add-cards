@@ -13,7 +13,7 @@ from aqt.sound import av_player
 
 def init_add_card(addCards):
     gui_hooks.current_note_type_did_change.append(addCards.onModelChange)
-    gui_hooks.state_did_reset.append(addCards.onReset)
+    gui_hooks.state_did_reset.remove(addCards.onReset)
     gui_hooks.state_did_reset.append(addCards.onResetSameModel)
 
 gui_hooks.add_cards_did_init.append(init_add_card)
@@ -21,6 +21,7 @@ gui_hooks.add_cards_did_init.append(init_add_card)
 
 
 def setupChoosers(self):
+    # only differenc: use our ModelChooser
     self.modelChooser = ModelChooser(self, self.mw,
                                      self.form.modelArea)
     self.deckChooser = DeckChooser(
@@ -28,7 +29,7 @@ def setupChoosers(self):
 
 AddCards.setupChoosers = setupChoosers
 
-def onReset(self, model=None, keep=False):
+def onReset(self, model: None = None, keep: bool = False) -> None:
     """Create a new note and set it.
 
     keyword arguments
@@ -46,14 +47,9 @@ def onReset(self, model=None, keep=False):
     if oldNote:
         if not keep:
             self.removeTempNote(oldNote)
-        for n in range(len(note.fields)):
-            try:
-                if not keep or flds[n]['sticky']:
-                    note.fields[n] = oldNote.fields[n]
-                else:
-                    note.fields[n] = ""
-            except IndexError:
-                break
+        for index in range(min(len(note.fields), len(oldNote.fields))):
+            if not keep or flds[index]["sticky"]:
+                note.fields[index] = oldNote.fields[index]
     if self.editor.web:
         # don't set and focus the window is cleaned up
         self.setAndFocusNote(note)
@@ -73,17 +69,21 @@ def _addCards(self):
         return
     tooltip(_("Added"), period=500)
     av_player.stop_and_clear_queue()
+    # only diff is using onResetSameModel
     self.onResetSameModel(keep=True)
     self.mw.col.autosave()
-
-    def _reject(self):
-        remHook('reset', self.onResetSameModel)
-        super()._reject()
-
-
 AddCards._addCards = _addCards
+
+_old_reject = AddCards._reject
+def _reject(self):
+    gui_hooks.state_did_reset.remove(self.onResetSameModel)
+    # onReset will also be removed from the hook by super. It's not a
+    # problem, as `remove` detect the method is not here
+    _old_reject(self)
+AddCards._reject = _reject
+
 # The window opener contains information about the class, and not its adress. Thus it must be updated.
-dialogs._dialogs["AddCards"] = [AddCards, None]
+dialogs._dialogs["AddCards"][0] = AddCards
 
 def onModelChange(self, unused=None) -> None:
     oldNote = self.editor.note
@@ -92,23 +92,18 @@ def onModelChange(self, unused=None) -> None:
     if oldNote:
         oldFields = list(oldNote.keys())
         newFields = list(note.keys())
-        for n, f in enumerate(note.model()["flds"]):
-            fieldName = f["name"]
-            try:
-                oldFieldName = oldNote.model()["flds"][n]["name"]
-            except IndexError:
-                oldFieldName = None
+        for index, fldType in enumerate(note.model()["flds"]):
+            fieldName = fldType["name"]
             # copy identical fields
             if fieldName in oldFields:
                 note[fieldName] = oldNote[fieldName]
-            # set non-identical fields by field index
-            elif oldFieldName and oldFieldName not in newFields:
-                try:
-                    note.fields[n] = oldNote.fields[n]
-                except IndexError:
-                    pass
+            elif index < len(oldNote.model()["flds"]):
+                # set non-identical fields by field index
+                oldFieldName = oldNote.model()["flds"][index]["name"]
+                if oldFieldName not in newFields:
+                    note.fields[index] = oldNote.fields[index]
         self.removeTempNote(oldNote)
     # put back this missing code: next line
-    self.note = note
+    self.editor.note = note
 AddCards.onModelChange = onModelChange
 
