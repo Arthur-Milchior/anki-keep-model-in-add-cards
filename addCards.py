@@ -42,7 +42,7 @@ def onReset(self, model: None = None, keep: bool = False) -> None:
         note = self.mw.col.newNote()
     else:  # Difference is here. If model given as argument, it is used
         note = Note(self.mw.col, model=model)
-    flds = note.model()['flds']
+    flds = note.note_type()['flds']
     # copy fields from old note
     if oldNote:
         if not keep:
@@ -56,8 +56,8 @@ def onReset(self, model: None = None, keep: bool = False) -> None:
 
 AddCards.onReset = onReset
 
-def onResetSameModel(self, keep=False):  # this is a new method
-    return self.onReset(model=self.editor.note.model() if self.editor.note else None, keep=keep)
+def onResetSameNote_Type(self, keep=False):  # this is a new method
+    return self.onReset(model=self.editor.note.note_type() if self.editor.note else None, keep=keep)
 AddCards.onResetSameModel = onResetSameModel
 
 def _addCards(self):
@@ -70,7 +70,7 @@ def _addCards(self):
     tooltip(_("Added"), period=500)
     av_player.stop_and_clear_queue()
     # only diff is using onResetSameModel
-    self.onResetSameModel(keep=True)
+    self.onResetSameNote_Type(keep=True)
     self.mw.col.autosave()
 AddCards._addCards = _addCards
 
@@ -92,14 +92,14 @@ def onModelChange(self, unused=None) -> None:
     if oldNote:
         oldFields = list(oldNote.keys())
         newFields = list(note.keys())
-        for index, fldType in enumerate(note.model()["flds"]):
+        for index, fldType in enumerate(note.note_type()["flds"]):
             fieldName = fldType["name"]
             # copy identical fields
             if fieldName in oldFields:
                 note[fieldName] = oldNote[fieldName]
-            elif index < len(oldNote.model()["flds"]):
+            elif index < len(oldNote.note_type()["flds"]):
                 # set non-identical fields by field index
-                oldFieldName = oldNote.model()["flds"][index]["name"]
+                oldFieldName = oldNote.note_type()["flds"][index]["name"]
                 if oldFieldName not in newFields:
                     note.fields[index] = oldNote.fields[index]
         self.removeTempNote(oldNote)
