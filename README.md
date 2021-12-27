@@ -1,8 +1,8 @@
 # Keep model of add cards
 ## Rationale
-For some reason, the note type in anki «add» window may suddenly
+For some reason, the note type in Anki «add» window may suddenly
 change. In the worst case, it may lead to losing data, if the new note
-type has less fields than the old note type. It may also means you'll
+type has fewer fields than the old note type. It may also mean you'll
 submit the note in the wrong type if you didn't pay attention.
 
 More precisely, this may occur in the following cases:
@@ -13,7 +13,7 @@ More precisely, this may occur in the following cases:
   window](https://ankiweb.net/shared/info/354407385), when you change
   the note type of a «add» window.
 ## Usage
-This add-on ensure that the note type of a «add» window only change
+This add-on ensures that the note type of a «add» window only change
 when you choose a note type from the same window.
 
 ## Internal
@@ -30,7 +30,7 @@ when you choose a note type from the same window.
   does not change the model.
 * The `ModelChooser` of the "add" window is a new class, inheriting
   from `aqt.modelchooser.ModelChooser`. It redefines `__init__`,
-  calling the previous method and removing some hook. It redefine
+  calling the previous method and removing some hook. It redefines
   `onModelChange` by copy-paste the old code, removing everything
   affecting the environment, and affecting directly the current "add"
   window.

@@ -1,7 +1,10 @@
+from typing import List
+
 from aqt.modelchooser import ModelChooser
 from aqt.qt import QPushButton
 from anki.lang import _
 from aqt import gui_hooks
+from aqt.utils import TR, tr, HelpPage
 
 class ModelChooser(ModelChooser):
     def __init__(self, parent, *args, **kwargs):
@@ -14,19 +17,19 @@ class ModelChooser(ModelChooser):
 
         current = self.deck.models.current()["name"]
         # edit button
-        edit = QPushButton(_("Manage"), clicked=self.onEdit)  # type: ignore
+        edit = QPushButton(tr(TR.QT_MISC_MANAGE), clicked=self.onEdit)  # type: ignore
 
-        def nameFunc():
+        def nameFunc() -> List[str]:
             return sorted(self.deck.models.allNames())
 
         ret = StudyDeck(
             self.mw,
             names=nameFunc,
-            accept=_("Choose"),
-            title=_("Choose Note Type"),
-            help="_notes",
+            accept=tr(TR.ACTIONS_CHOOSE),
+            title=tr(TR.QT_MISC_CHOOSE_NOTE_TYPE),
+            help=HelpPage.NOTE_TYPE,
             current=current,
-            parent=self.widget,
+            parent=self._widget,
             buttons=[edit],
             cancel=True,
             geomKey="selectModel",
